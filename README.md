@@ -62,7 +62,7 @@ terraform destroy -auto-approve
 
 ## Notes
 - Ensure secrets like database credentials are managed securely.
-- Use AWS Secrets Manager or environment variables instead of hardcoding sensitive data in `terraform.tfvars`.
+- Create a terraform.tfvars file and add all your configurations for database and vpc etc (you will find the stuffs you need to add by going through the variables.tf)
 
 ## Author
 **Ignatus Anim** - [GitHub Profile](https://github.com/ignatus-anim)
