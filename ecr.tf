@@ -13,5 +13,5 @@ output "ecr_repository_url" {
 
 output "ecr_repository_name" {
   value = aws_ecr_repository.todolamp.name
-  
+
 }

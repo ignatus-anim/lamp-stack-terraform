@@ -30,7 +30,7 @@ resource "aws_ecs_task_definition" "lamp_task" {
           hostPort      = var.container_port
         }
       ]
-        environment = [
+      environment = [
         { name = "DB_HOST", value = aws_db_instance.lamp_db.endpoint },
         { name = "DB_USER", value = var.db_username },
         { name = "DB_PASSWORD", value = var.db_password },
@@ -58,8 +58,8 @@ resource "aws_ecs_service" "lamp_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = [aws_subnet.public_subnet_az1.id, aws_subnet.public_subnet_az2.id]
-    security_groups = [aws_security_group.ecs_sg.id]
+    subnets          = [aws_subnet.public_subnet_az1.id, aws_subnet.public_subnet_az2.id]
+    security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
 
@@ -83,9 +83,9 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id = aws_vpc.main.id
 
   ingress {
-    from_port   = var.container_port
-    to_port     = var.container_port
-    protocol    = "tcp"
+    from_port       = var.container_port
+    to_port         = var.container_port
+    protocol        = "tcp"
     security_groups = [aws_security_group.alb_sg.id]
   }
 
