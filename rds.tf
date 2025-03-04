@@ -88,6 +88,7 @@ resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
 }
 
 
+# OUTPUTS
 
 output "rds_security_group" {
   value = aws_security_group.rds_sg.id

@@ -30,14 +30,6 @@ resource "aws_ecs_task_definition" "lamp_task" {
           hostPort      = var.container_port
         }
       ]
-    #   environment = [
-    #     { name = "DB_HOST", valueFrom = aws_secretsmanager_secret.db_credentials.arn }
-    #   ]
-    #   secrets = [
-    #     { name = "DB_USER", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:DB_USER::" },
-    #     { name = "DB_PASSWORD", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:DB_PASSWORD::" },
-    #     { name = "DB_NAME", valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:DB_NAME::" }
-    #   ]
         environment = [
         { name = "DB_HOST", value = aws_db_instance.lamp_db.endpoint },
         { name = "DB_USER", value = var.db_username },
@@ -133,6 +125,8 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+
+# OUTPUTS
 
 output "ecs_security_group" {
   value = aws_security_group.ecs_sg.id
