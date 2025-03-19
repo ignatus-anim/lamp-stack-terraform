@@ -6,9 +6,14 @@ resource "aws_lb" "lamp_alb" {
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = [aws_subnet.public_subnet_az1.id, aws_subnet.public_subnet_az2.id]
 
+  # CloudWatch logs are configured separately
+
   tags = {
     Name = "${var.project_name}-alb"
   }
+
+  # Associate with the IAM role for CloudWatch logs
+  depends_on = [aws_iam_role.alb_logs_role]
 }
 
 
