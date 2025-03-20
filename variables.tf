@@ -147,5 +147,52 @@ variable "ecs_task_memory" {
 }
 
 variable "retention_in_days" {
-  type = number
+  description = "Number of days to retain CloudWatch logs"
+  type        = number
+}
+
+# CloudWatch Alarm Variables
+variable "alarm_evaluation_periods" {
+  description = "Number of periods to evaluate for the alarm"
+  type        = number
+}
+
+variable "cpu_alarm_threshold" {
+  description = "Threshold for CPU utilization alarms (percentage)"
+  type        = number
+}
+
+variable "memory_alarm_threshold" {
+  description = "Threshold for memory utilization alarms (percentage)"
+  type        = number
+}
+
+variable "standard_alarm_period" {
+  description = "Period in seconds for standard CloudWatch alarms"
+  type        = number
+}
+
+variable "quick_alarm_period" {
+  description = "Period in seconds for quick-response CloudWatch alarms"
+  type        = number
+}
+
+variable "rds_storage_threshold" {
+  description = "Threshold for RDS free storage space alarm in bytes"
+  type        = number
+}
+
+variable "alb_5xx_threshold" {
+  description = "Threshold for ALB 5XX error count alarm"
+  type        = number
+}
+
+variable "alb_2xx_low_threshold" {
+  description = "Lower threshold for ALB 2XX success responses"
+  type        = number
+}
+
+variable "alb_2xx_high_threshold" {
+  description = "Upper threshold for ALB 2XX success responses"
+  type        = number
 }

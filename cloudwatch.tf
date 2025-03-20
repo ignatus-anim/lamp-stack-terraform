@@ -4,32 +4,6 @@ resource "aws_cloudwatch_log_group" "ecs_log_group" {
   retention_in_days = var.retention_in_days
 }
 
-# CloudWatch Log Group for ALB
-resource "aws_cloudwatch_log_group" "alb_log_group" {
-  name              = "/aws/alb/${var.project_name}-alb"
-  retention_in_days = var.retention_in_days
-
-  tags = {
-    Name = "${var.project_name}-alb-logs"
-  }
-}
-
-# CloudWatch Log Groups for RDS
-locals {
-  rds_log_types = ["audit", "error", "general", "slowquery"]
-}
-
-resource "aws_cloudwatch_log_group" "rds_log_groups" {
-  count = length(local.rds_log_types)
-  
-  name              = "/aws/rds/instance/${aws_db_instance.lamp_db.id}/${local.rds_log_types[count.index]}"
-  retention_in_days = var.retention_in_days
-  
-  tags = {
-    Name = "${var.project_name}-rds-${local.rds_log_types[count.index]}-logs"
-  }
-}
-
 # IAM Role for ECS Cloudwatch logs
 resource "aws_iam_role_policy" "ecs_cloudwatch_logs" {
   name = "ecs-cloudwatch-logs-policy"
@@ -52,93 +26,17 @@ resource "aws_iam_role_policy" "ecs_cloudwatch_logs" {
 }
 
 
-# IAM Role for ALB Cloudwatch logs
-resource "aws_iam_role" "alb_logs_role" {
-  name = "${var.project_name}-alb-logs-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "elasticloadbalancing.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "alb_cloudwatch_logs" {
-  name = "alb-cloudwatch-logs-policy"
-  role = aws_iam_role.alb_logs_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:CreateLogGroup"
-        ]
-        Effect   = "Allow"
-        Resource = "${aws_cloudwatch_log_group.alb_log_group.arn}:*"
-      }
-    ]
-  })
-}
-
-# IAM Role for RDS Cloudwatch logs
-resource "aws_iam_role" "rds_logs_role" {
-  name = "${var.project_name}-rds-logs-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "rds.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy" "rds_cloudwatch_logs" {
-  name = "rds-cloudwatch-logs-policy"
-  role = aws_iam_role.rds_logs_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:CreateLogGroup"
-        ]
-        Effect   = "Allow"
-        Resource = [for log_group in aws_cloudwatch_log_group.rds_log_groups : "${log_group.arn}:*"]
-      }
-    ]
-  })
-}
-
 # CloudWatch Alarms
 # ECS CPU Utilization Alarm
 resource "aws_cloudwatch_metric_alarm" "ecs_cpu_alarm" {
   alarm_name          = "${var.project_name}-ecs-cpu-alarm"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
+  evaluation_periods  = var.alarm_evaluation_periods
   metric_name         = "CPUUtilization"
   namespace           = "AWS/ECS"
-  period              = 60
+  period              = var.standard_alarm_period
   statistic           = "Average"
-  threshold           = 80
+  threshold           = var.cpu_alarm_threshold
   alarm_description   = "This alarm monitors ECS CPU utilization"
   alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
   ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
@@ -153,12 +51,12 @@ resource "aws_cloudwatch_metric_alarm" "ecs_cpu_alarm" {
 resource "aws_cloudwatch_metric_alarm" "ecs_memory_alarm" {
   alarm_name          = "${var.project_name}-ecs-memory-alarm"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
+  evaluation_periods  = var.alarm_evaluation_periods
   metric_name         = "MemoryUtilization"
   namespace           = "AWS/ECS"
-  period              = 60
+  period              = var.standard_alarm_period
   statistic           = "Average"
-  threshold           = 80
+  threshold           = var.memory_alarm_threshold
   alarm_description   = "This alarm monitors ECS memory utilization"
   alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
   ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
@@ -166,6 +64,102 @@ resource "aws_cloudwatch_metric_alarm" "ecs_memory_alarm" {
   dimensions = {
     ClusterName = aws_ecs_cluster.lamp_cluster.name
     ServiceName = aws_ecs_service.lamp_service.name
+  }
+}
+
+# RDS CPU Utilization Alarm
+resource "aws_cloudwatch_metric_alarm" "rds_cpu_alarm" {
+  alarm_name          = "${var.project_name}-rds-cpu-alarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = var.alarm_evaluation_periods
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/RDS"
+  period              = var.standard_alarm_period
+  statistic           = "Average"
+  threshold           = var.cpu_alarm_threshold
+  alarm_description   = "This alarm monitors RDS CPU utilization"
+  alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
+  ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
+
+  dimensions = {
+    DBInstanceIdentifier = aws_db_instance.lamp_db.id
+  }
+}
+
+# RDS Free Storage Space Alarm
+resource "aws_cloudwatch_metric_alarm" "rds_storage_alarm" {
+  alarm_name          = "${var.project_name}-rds-storage-alarm"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = var.alarm_evaluation_periods
+  metric_name         = "FreeStorageSpace"
+  namespace           = "AWS/RDS"
+  period              = var.standard_alarm_period
+  statistic           = "Average"
+  threshold           = var.rds_storage_threshold
+  alarm_description   = "This alarm monitors RDS free storage space"
+  alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
+  ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
+
+  dimensions = {
+    DBInstanceIdentifier = aws_db_instance.lamp_db.id
+  }
+}
+
+# ALB 5XX Error Count Alarm
+resource "aws_cloudwatch_metric_alarm" "alb_5xx_alarm" {
+  alarm_name          = "${var.project_name}-alb-5xx-alarm"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = var.alarm_evaluation_periods
+  metric_name         = "HTTPCode_Target_5XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = var.standard_alarm_period
+  statistic           = "Sum"
+  threshold           = var.alb_5xx_threshold
+  alarm_description   = "This alarm monitors ALB 5XX errors"
+  alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
+  ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
+
+  dimensions = {
+    LoadBalancer = aws_lb.lamp_alb.arn_suffix
+  }
+}
+
+# ALB HTTP 200 Status Code Alarm (Success Monitoring)
+resource "aws_cloudwatch_metric_alarm" "alb_200_alarm" {
+  alarm_name          = "${var.project_name}-alb-200-alarm"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = var.alarm_evaluation_periods
+  metric_name         = "HTTPCode_Target_2XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = var.quick_alarm_period
+  statistic           = "Sum"
+  threshold           = var.alb_2xx_low_threshold
+  alarm_description   = "This alarm monitors for a drop in successful HTTP 200 responses"
+  alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
+  ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
+
+  dimensions = {
+    LoadBalancer = aws_lb.lamp_alb.arn_suffix
+  }
+}
+
+# ALB HTTP 201 Status Code Alarm (Created Resources Monitoring)
+resource "aws_cloudwatch_metric_alarm" "alb_201_alarm" {
+  alarm_name          = "${var.project_name}-todo-creation-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "HTTPCode_Target_2XX_Count"
+  namespace           = "AWS/ApplicationELB"
+  period              = var.quick_alarm_period
+  statistic           = "Sum"
+  threshold           = var.alb_2xx_high_threshold
+  alarm_description   = "This alarm triggers when a todo item is created"
+  alarm_actions       = [aws_sns_topic.cloudwatch_alarms.arn]
+  ok_actions          = [aws_sns_topic.cloudwatch_alarms.arn]
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    LoadBalancer = aws_lb.lamp_alb.arn_suffix
   }
 }
 

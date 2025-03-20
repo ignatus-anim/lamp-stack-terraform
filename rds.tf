@@ -23,9 +23,6 @@ resource "aws_db_instance" "lamp_db" {
   monitoring_interval             = 60
   monitoring_role_arn             = aws_iam_role.rds_monitoring_role.arn
   enabled_cloudwatch_logs_exports = ["audit", "error", "general", "slowquery"]
-  
-  # Associate with the IAM role for CloudWatch logs
-  depends_on = [aws_iam_role.rds_logs_role]
 
   tags = {
     Name = "${var.project_name}-db-rds-instance"

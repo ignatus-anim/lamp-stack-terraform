@@ -11,9 +11,6 @@ resource "aws_lb" "lamp_alb" {
   tags = {
     Name = "${var.project_name}-alb"
   }
-
-  # Associate with the IAM role for CloudWatch logs
-  depends_on = [aws_iam_role.alb_logs_role]
 }
 
 

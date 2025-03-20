@@ -17,7 +17,7 @@ resource "aws_cloudwatch_dashboard" "lamp_dashboard" {
             ["AWS/ECS", "CPUUtilization", "ClusterName", aws_ecs_cluster.lamp_cluster.name, "ServiceName", aws_ecs_service.lamp_service.name, { "stat" = "Average", "label" = "CPU Utilization" }],
             ["AWS/ECS", "MemoryUtilization", "ClusterName", aws_ecs_cluster.lamp_cluster.name, "ServiceName", aws_ecs_service.lamp_service.name, { "stat" = "Average", "label" = "Memory Utilization" }]
           ]
-          period = 300
+          period = 10
           region = var.aws_region
           title  = "ECS Service CPU and Memory"
           view   = "timeSeries"
@@ -36,7 +36,7 @@ resource "aws_cloudwatch_dashboard" "lamp_dashboard" {
             ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", aws_lb.lamp_alb.arn_suffix, { "stat" = "Sum", "label" = "Request Count" }],
             ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", aws_lb.lamp_alb.arn_suffix, { "stat" = "Average", "label" = "Response Time" }]
           ]
-          period = 300
+          period = 10
           region = var.aws_region
           title  = "ALB Request Count and Response Time"
           view   = "timeSeries"
@@ -57,7 +57,7 @@ resource "aws_cloudwatch_dashboard" "lamp_dashboard" {
             ["AWS/ApplicationELB", "HTTPCode_Target_4XX_Count", "LoadBalancer", aws_lb.lamp_alb.arn_suffix, { "stat" = "Sum", "label" = "4XX" }],
             ["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", aws_lb.lamp_alb.arn_suffix, { "stat" = "Sum", "label" = "5XX" }]
           ]
-          period = 300
+          period = 10
           region = var.aws_region
           title  = "ALB HTTP Status Codes"
           view   = "timeSeries"
@@ -76,7 +76,7 @@ resource "aws_cloudwatch_dashboard" "lamp_dashboard" {
             ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", aws_db_instance.lamp_db.id, { "stat" = "Average", "label" = "CPU Utilization" }],
             ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", aws_db_instance.lamp_db.id, { "stat" = "Average", "label" = "DB Connections" }]
           ]
-          period = 300
+          period = 10
           region = var.aws_region
           title  = "RDS CPU and Connections"
           view   = "timeSeries"
@@ -95,7 +95,7 @@ resource "aws_cloudwatch_dashboard" "lamp_dashboard" {
             ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", aws_db_instance.lamp_db.id, { "stat" = "Average", "label" = "Free Storage Space" }],
             ["AWS/RDS", "FreeableMemory", "DBInstanceIdentifier", aws_db_instance.lamp_db.id, { "stat" = "Average", "label" = "Freeable Memory" }]
           ]
-          period = 300
+          period = 10
           region = var.aws_region
           title  = "RDS Storage and Memory"
           view   = "timeSeries"
