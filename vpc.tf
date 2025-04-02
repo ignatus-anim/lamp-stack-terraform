@@ -90,8 +90,6 @@ resource "aws_internet_gateway" "igw" {
 }
 
 
-
-
 # OUTPUTS
 
 output "igw_id" {

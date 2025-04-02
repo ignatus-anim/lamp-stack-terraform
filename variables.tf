@@ -196,3 +196,29 @@ variable "alb_2xx_high_threshold" {
   description = "Upper threshold for ALB 2XX success responses"
   type        = number
 }
+
+# Autoscaling Variables
+variable "autoscaling_min_capacity" {
+  description = "Minimum number of tasks for the ECS service"
+  type        = number
+}
+
+variable "autoscaling_max_capacity" {
+  description = "Maximum number of tasks for the ECS service"
+  type        = number
+}
+
+variable "cpu_target_tracking_value" {
+  description = "Target CPU utilization percentage for autoscaling"
+  type        = number
+}
+
+variable "memory_target_tracking_value" {
+  description = "Target memory utilization percentage for autoscaling"
+  type        = number
+}
+
+variable "request_count_target_value" {
+  description = "Target request count per target for ALB request count based autoscaling"
+  type        = number
+}
